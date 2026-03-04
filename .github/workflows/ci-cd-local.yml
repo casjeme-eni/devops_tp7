@@ -78,11 +78,14 @@ jobs:
       - name: Build image
         run: |
           docker build -t todolist-backend:ci .
+      - name: Create network
+        run: |
+          docker network create ci-net
 
       # On redémarre une DB pour le "déploiement local" (séparée de celle des tests)
       - name: Run MySQL container
         run: |
-          docker run -d --name todolist-mysql \
+          docker run -d --name todolist-mysql --network ci-net \
           -e MYSQL_ROOT_PASSWORD=root \
           -e MYSQL_DATABASE=todolist_db \
           -p 3306:3306 \
@@ -107,8 +110,8 @@ jobs:
 
       - name: Run API container
         run: |
-          docker run -d --name todolist-api \
-            -e DB_HOST=host.docker.internal \
+          docker run -d --name todolist-api --network ci-net \
+            -e DB_HOST=todolist-mysql \
             -e DB_USER=root \
             -e DB_PASSWORD=root \
             -e DB_NAME=todolist_db \
